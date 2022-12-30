@@ -75,13 +75,10 @@ def get_cudnn_version():
                     if "#define CUDNN_MAJOR" in line:
                         version = line.split()[-1]
                     if "#define CUDNN_MINOR" in line:
-                        version += "." + line.split()[-1]
+                        version += f".{line.split()[-1]}"
                     if "#define CUDNN_PATCHLEVEL" in line:
-                        version += "." + line.split()[-1]
-            if version:
-                return version
-            else:
-                return "Cannot find CUDNN version"
+                        version += f".{line.split()[-1]}"
+            return version or "Cannot find CUDNN version"
         else:
             return "No CUDNN in this machine"
 

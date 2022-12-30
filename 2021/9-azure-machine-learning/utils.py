@@ -27,15 +27,15 @@ def one_hot_encode(array, num_of_classes):
 
 def prepare_data(dataset, data_folder):
     data_folder = os.path.join(data_folder, dataset)
-    print('making data directory ' + data_folder + '...')
+    print(f'making data directory {data_folder}...')
     os.makedirs(data_folder, exist_ok = True)
 
     def download_data(url, filename):
         if not os.path.isfile(filename):
-            print('downloading ' + url)
+            print(f'downloading {url}')
             urllib.request.urlretrieve(url, filename = filename)
         else:
-            print(filename + ' exists, using it')
+            print(f'{filename} exists, using it')
 
     print('downloading training data ...')
     download_data('http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz', './data/mnist/train-images.gz')

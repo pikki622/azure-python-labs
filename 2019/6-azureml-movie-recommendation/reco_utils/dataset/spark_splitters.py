@@ -71,7 +71,7 @@ def spark_chrono_split(
     Returns:
         list: Splits of the input data as spark.DataFrame.
     """
-    if not (filter_by == "user" or filter_by == "item"):
+    if filter_by not in ["user", "item"]:
         raise ValueError("filter_by should be either 'user' or 'item'.")
 
     if min_rating < 1:
@@ -98,7 +98,7 @@ def spark_chrono_split(
     rating_grouped = (
         data.groupBy(split_by_column)
         .agg({col_timestamp: "count"})
-        .withColumnRenamed("count(" + col_timestamp + ")", "count")
+        .withColumnRenamed(f"count({col_timestamp})", "count")
     )
     rating_all = data.join(broadcast(rating_grouped), on=split_by_column)
 
@@ -153,7 +153,7 @@ def spark_stratified_split(
     Returns:
         list: Splits of the input data as spark.DataFrame.
     """
-    if not (filter_by == "user" or filter_by == "item"):
+    if filter_by not in ["user", "item"]:
         raise ValueError("filter_by should be either 'user' or 'item'.")
 
     if min_rating < 1:
@@ -180,7 +180,7 @@ def spark_stratified_split(
     rating_grouped = (
         data.groupBy(split_by_column)
         .agg({col_rating: "count"})
-        .withColumnRenamed("count(" + col_rating + ")", "count")
+        .withColumnRenamed(f"count({col_rating})", "count")
     )
     rating_all = data.join(broadcast(rating_grouped), on=split_by_column)
 

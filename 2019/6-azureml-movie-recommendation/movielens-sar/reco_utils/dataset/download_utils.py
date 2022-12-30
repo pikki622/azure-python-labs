@@ -47,12 +47,12 @@ def maybe_download(url, filename=None, work_directory=".", expected_bytes=None):
         with TqdmUpTo(unit="B", unit_scale=True) as t:
             filepath, _ = urlretrieve(url, filepath, reporthook=t.update_to)
     else:
-        log.debug("File {} already downloaded".format(filepath))
+        log.debug(f"File {filepath} already downloaded")
     if expected_bytes is not None:
         statinfo = os.stat(filepath)
         if statinfo.st_size != expected_bytes:
             os.remove(filepath)
-            raise IOError("Failed to verify {}".format(filepath))
+            raise IOError(f"Failed to verify {filepath}")
 
     return filepath
 
@@ -80,7 +80,6 @@ def download_path(path=None):
         finally:
             tmp_dir.cleanup()
     else:
-        path = os.path.realpath(path)
-        yield path
+        yield os.path.realpath(path)
 
     

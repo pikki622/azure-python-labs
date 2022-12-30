@@ -12,8 +12,7 @@ def connect():
         connString=source.readline().strip()
         #return connString
         try:
-            conn=psycopg2.connect(connString)
-            return conn
+            return psycopg2.connect(connString)
         except:
             print("Database connection error")
             return None
@@ -40,7 +39,7 @@ def loadData(filename="data.csv"):
         return "Data loaded successfully"
 
 def getAllData():
-    ret=dict()
+    ret = {}
     conn=connect()
     cursor=conn.cursor()
     cursor.execute('SELECT device_id,data FROM raw_data')
@@ -64,8 +63,7 @@ def getDeviceAverage(device):
     conn=connect()
     cursor=conn.cursor()
     cursor.execute("select data -> 'temperature' -> 'units',avg((data -> 'temperature' ->> 'value')::float) from raw_data where device_id = %s group by 1",(device,))
-    data=cursor.fetchone()
-    return data
+    return cursor.fetchone()
 
 def runSQL(statement):
     conn=connect()
@@ -75,7 +73,7 @@ def runSQL(statement):
     return None
 
 def getAverageTemperatures():
-    ret=dict()
+    ret = {}
     conn=connect()
     cursor=conn.cursor()
     cursor.execute('SELECT device_id,location_name,data FROM raw_data')

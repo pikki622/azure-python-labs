@@ -57,7 +57,7 @@ def svd_training(args):
         k = args.k
         for metric in ranking_metrics:
             result = eval(metric)(validation_data, all_predictions, col_prediction='prediction', k=k)
-            print("{}@{}".format(metric, k), result)
+            print(f"{metric}@{k}", result)
             if HAS_AML:
                 run.log(metric, result)
 
@@ -104,7 +104,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("Args:", str(vars(args)), sep='\n')
+    print("Args:", vars(args), sep='\n')
 
     if HAS_AML:
         run.log('Number of epochs', args.epochs)

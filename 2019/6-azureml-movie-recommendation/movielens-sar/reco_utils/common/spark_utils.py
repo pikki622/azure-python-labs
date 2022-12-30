@@ -33,21 +33,17 @@ def start_or_get_spark(
         obj: Spark context.
     """
 
-    submit_args = ''
-    if packages is not None:
-        submit_args = '--packages {} '.format(','.join(packages))
+    submit_args = '' if packages is None else f"--packages {','.join(packages)} "
     if jars is not None:
-        submit_args += '--jars {} '.format(','.join(jars))
+        submit_args += f"--jars {','.join(jars)} "
     if repository is not None:
-        submit_args += "--repositories {}".format(repository)
+        submit_args += f"--repositories {repository}"
     if submit_args:
-        os.environ['PYSPARK_SUBMIT_ARGS'] = '{} pyspark-shell'.format(submit_args)
+        os.environ['PYSPARK_SUBMIT_ARGS'] = f'{submit_args} pyspark-shell'
 
-    spark = (
+    return (
         SparkSession.builder.appName(app_name)
         .master(url)
         .config("spark.driver.memory", memory)
         .getOrCreate()
     )
-
-    return spark

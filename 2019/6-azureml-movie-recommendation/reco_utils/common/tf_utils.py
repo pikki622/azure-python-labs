@@ -37,28 +37,22 @@ def pandas_input_fn(
     """
 
     X_df = df.copy()
-    if y_col is not None:
-        y = X_df.pop(y_col).values
-    else:
-        y = None
-
+    y = X_df.pop(y_col).values if y_col is not None else None
     X = {}
     for col in X_df.columns:
         values = X_df[col].values
         if isinstance(values[0], (list, np.ndarray)):
-            values = np.array([l for l in values], dtype=np.float32)
+            values = np.array(list(values), dtype=np.float32)
         X[col] = values
 
-    input_fn = tf.estimator.inputs.numpy_input_fn(
+    return tf.estimator.inputs.numpy_input_fn(
         x=X,
         y=y,
         batch_size=batch_size,
         num_epochs=num_epochs,
         shuffle=shuffle,
-        num_threads=num_threads
+        num_threads=num_threads,
     )
-
-    return input_fn
 
 
 def build_optimizer(name, lr=0.001, **kwargs):
@@ -202,11 +196,10 @@ class _TrainLogHook(tf.train.SessionRunHook):
             self.step = 0
 
     def before_run(self, run_context):
-        if self.global_step_tensor is not None:
-            requests = {'global_step': self.global_step_tensor}
-            return tf.train.SessionRunArgs(requests)
-        else:
+        if self.global_step_tensor is None:
             return None
+        requests = {'global_step': self.global_step_tensor}
+        return tf.train.SessionRunArgs(requests)
 
     def after_run(self, run_context, run_values):
         if self.global_step_tensor is not None:

@@ -207,14 +207,12 @@ class SparkRankingEvaluation:
                 "rating_pred should be but is not a Spark DataFrame"
             )  # pragma : No Cover
 
-        # Check if columns exist.
-        true_columns = self.rating_true.columns
         pred_columns = self.rating_pred.columns
 
+        true_columns = self.rating_true.columns
         if self.col_user not in true_columns:
             raise ValueError(
-                "Schema of rating_true not valid. Missing User Col: "
-                + str(true_columns)
+                f"Schema of rating_true not valid. Missing User Col: {str(true_columns)}"
             )
         if self.col_item not in true_columns:
             raise ValueError("Schema of rating_true not valid. Missing Item Col")
@@ -242,9 +240,7 @@ class SparkRankingEvaluation:
 
         if relevancy_method not in relevant_func:
             raise ValueError(
-                "relevancy_method should be one of {}".format(
-                    list(relevant_func.keys())
-                )
+                f"relevancy_method should be one of {list(relevant_func.keys())}"
             )
 
         self.rating_pred = (
@@ -272,9 +268,8 @@ class SparkRankingEvaluation:
         self._items_for_user_pred = self.rating_pred
 
         self._items_for_user_true = (
-            self.rating_true
-            .groupBy(self.col_user)
-            .agg(expr("collect_list(" + self.col_item + ") as ground_truth"))
+            self.rating_true.groupBy(self.col_user)
+            .agg(expr(f"collect_list({self.col_item}) as ground_truth"))
             .select(self.col_user, "ground_truth")
         )
 
@@ -292,9 +287,7 @@ class SparkRankingEvaluation:
         Return:
             float: precision at k (min=0, max=1)
         """
-        precision = self._metrics.precisionAt(self.k)
-
-        return precision
+        return self._metrics.precisionAt(self.k)
 
     def recall_at_k(self):
         """Get recall@K.
@@ -304,11 +297,10 @@ class SparkRankingEvaluation:
         Return:
             float: recall at k (min=0, max=1).
         """
-        recall = self._items_for_user_all.rdd.map(
-            lambda x: float(len(set(x[0]).intersection(set(x[1])))) / float(len(x[1]))
+        return self._items_for_user_all.rdd.map(
+            lambda x: float(len(set(x[0]).intersection(set(x[1]))))
+            / float(len(x[1]))
         ).mean()
-
-        return recall
 
     def ndcg_at_k(self):
         """Get Normalized Discounted Cumulative Gain (NDCG)
@@ -318,9 +310,7 @@ class SparkRankingEvaluation:
         Return:
             float: nDCG at k (min=0, max=1).
         """
-        ndcg = self._metrics.ndcgAt(self.k)
-
-        return ndcg
+        return self._metrics.ndcgAt(self.k)
 
     def map_at_k(self):
         """Get mean average precision at k.
@@ -330,9 +320,7 @@ class SparkRankingEvaluation:
         Return:
             float: MAP at k (min=0, max=1).
         """
-        maprecision = self._metrics.meanAveragePrecision
-
-        return maprecision
+        return self._metrics.meanAveragePrecision
 
 
 def _get_top_k_items(
@@ -362,20 +350,17 @@ def _get_top_k_items(
     """
     window_spec = Window.partitionBy(col_user).orderBy(col(col_rating).desc())
 
-    # this does not work for rating of the same value.
-    items_for_user = (
+    return (
         dataframe.select(
             col_user,
             col_item,
             col_rating,
-            row_number().over(window_spec).alias("rank")
+            row_number().over(window_spec).alias("rank"),
         )
         .where(col("rank") <= k)
         .groupby(col_user)
         .agg(F.collect_list(col_item).alias(col_prediction))
     )
-
-    return items_for_user
 
 
 def _get_relevant_items_by_threshold(
@@ -450,14 +435,18 @@ def _get_relevant_items_by_timestamp(
     """
     window_spec = Window.partitionBy(col_user).orderBy(col(col_timestamp).desc())
 
-    items_for_user = (
+    return (
         dataframe.select(
-            col_user, col_item, col_rating, row_number().over(window_spec).alias("rank")
+            col_user,
+            col_item,
+            col_rating,
+            row_number().over(window_spec).alias("rank"),
         )
         .where(col("rank") <= k)
-        .withColumn(col_prediction, F.collect_list(col_item).over(Window.partitionBy(col_user)))
+        .withColumn(
+            col_prediction,
+            F.collect_list(col_item).over(Window.partitionBy(col_user)),
+        )
         .select(col_user, col_prediction)
         .dropDuplicates([col_user, col_prediction])
     )
-
-    return items_for_user

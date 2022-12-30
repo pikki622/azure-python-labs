@@ -23,7 +23,7 @@ def dapr_http_post_state(store="statestore", name="name", value="Bruce Wayne"):
 def dapr_http_get_secret(store="my-secret-store", name="my-secret"):
     """GET /v1.0/secrets/{store}/{name}"""
     port = os.getenv("DAPR_HTTP_PORT") or "3500"
-    r = requests.get(f"http://localhost:{3500}/v1.0/secrets/{store}/{name}")
+    r = requests.get(f"http://localhost:3500/v1.0/secrets/{store}/{name}")
     print(r.json())
 
 # sdk examples 
